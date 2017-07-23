@@ -1,27 +1,21 @@
 /*
- * \brief  Client-side interface of the Hello service
- * \author Björn Döbel
- * \date   2008-03-20
- */
-
-/*
- * Copyright (C) 2008-2017 Genode Labs GmbH
+ * Copyright (C) 2017 Joerg-Christian Boehme
  *
  * This file is part of the Genode OS framework, which is distributed
  * under the terms of the GNU Affero General Public License version 3.
  */
 
-#ifndef _INCLUDE__HELLO_SESSION_H__CLIENT_H_
-#define _INCLUDE__HELLO_SESSION_H__CLIENT_H_
+#ifndef _INCLUDE__HELLO_WORLD__CLIENT_H_
+#define _INCLUDE__HELLO_WORLD__CLIENT_H_
 
-#include <hello_session/hello_session.h>
+#include <hello_world_session/hello_session.h>
 #include <base/rpc_client.h>
 #include <base/log.h>
 
-namespace mytutorial { struct Session_client; }
+namespace helloworld { struct Session_client; }
 
 
-struct mytutorial::Session_client : Genode::Rpc_client<Session>
+struct helloworld::Session_client : Genode::Rpc_client<Session>
 {
 	Session_client(Genode::Capability<Session> cap)
 	: Genode::Rpc_client<Session>(cap) { }
@@ -39,4 +33,4 @@ struct mytutorial::Session_client : Genode::Rpc_client<Session>
 	}
 };
 
-#endif /* _INCLUDE__HELLO_SESSION_H__CLIENT_H_ */
+#endif /* _INCLUDE__HELLO_WORLD__CLIENT_H_ */

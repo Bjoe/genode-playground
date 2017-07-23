@@ -1,12 +1,5 @@
 /*
- * \brief  Test client for the Hello RPC interface
- * \author Björn Döbel
- * \author Norman Feske
- * \date   2008-03-20
- */
-
-/*
- * Copyright (C) 2008-2017 Genode Labs GmbH
+ * Copyright (C) 2017 Joerg-Christian Boehme
  *
  * This file is part of the Genode OS framework, which is distributed
  * under the terms of the GNU Affero General Public License version 3.
@@ -23,7 +16,7 @@
 #include <cpu_session/cpu_session.h>
 #include <pd_session/pd_session.h>
 #include <timer_session/connection.h>
-#include <hello_session/connection.h>
+#include <hello_world_session/connection.h>
 
 class Timeout
 {
@@ -96,7 +89,7 @@ void Component::construct(Genode::Env &env)
 
   Genode::Region_map& regionMapSession = env.rm();
 
-  mytutorial::Connection hello(env);
+  helloworld::Connection hello(env);
 
   Genode::log("Available RAM: ", ramSession.avail_ram());
   Genode::log("Quota RAM: ", ramSession.ram_quota());

@@ -1,12 +1,5 @@
 /*
- * \brief  Main program of the Hello server
- * \author Björn Döbel
- * \author Norman Feske
- * \date   2008-03-20
- */
-
-/*
- * Copyright (C) 2008-2017 Genode Labs GmbH
+ * Copyright (C) 2017 Joerg-Christian Boehme
  *
  * This file is part of the Genode OS framework, which is distributed
  * under the terms of the GNU Affero General Public License version 3.
@@ -16,17 +9,17 @@
 #include <base/log.h>
 #include <base/heap.h>
 #include <root/component.h>
-#include <hello_session/hello_session.h>
+#include <hello_world_session/hello_session.h>
 #include <base/rpc_server.h>
 
-namespace mytutorial {
+namespace helloworld {
 	struct Session_component;
 	class Root_component;
 	struct Main;
 }
 
 
-struct mytutorial::Session_component : Genode::Rpc_object<Session>
+struct helloworld::Session_component : Genode::Rpc_object<Session>
 {
 	void say_hello() {
 		Genode::log("I am here... Hello."); }
@@ -36,7 +29,7 @@ struct mytutorial::Session_component : Genode::Rpc_object<Session>
 };
 
 
-class mytutorial::Root_component
+class helloworld::Root_component
 :
 	public Genode::Root_component<Session_component>
 {
@@ -60,7 +53,7 @@ class mytutorial::Root_component
 };
 
 
-struct mytutorial::Main
+struct helloworld::Main
 {
 	Genode::Env &env;
 
@@ -70,7 +63,7 @@ struct mytutorial::Main
 	 */
 	Genode::Sliced_heap sliced_heap { env.ram(), env.rm() };
 
-	mytutorial::Root_component root { env.ep(), sliced_heap };
+        helloworld::Root_component root { env.ep(), sliced_heap };
 
 	Main(Genode::Env &env) : env(env)
 	{
@@ -98,5 +91,5 @@ void Component::construct(Genode::Env &env)
 	const char* ramName = ramSession.service_name();
 	Genode::log("RAM service name: ", ramName);
 
-	static mytutorial::Main main(env);
+        static helloworld::Main main(env);
 }

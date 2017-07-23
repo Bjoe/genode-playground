@@ -1,26 +1,21 @@
 /*
- * \brief  Interface definition of the Hello service
- * \author Björn Döbel
- * \date   2008-03-20
- */
-
-/*
- * Copyright (C) 2008-2017 Genode Labs GmbH
+ * Copyright (C) 2017 Joerg-Christian Boehme
  *
  * This file is part of the Genode OS framework, which is distributed
  * under the terms of the GNU Affero General Public License version 3.
  */
 
-#ifndef _INCLUDE__HELLO_SESSION__HELLO_SESSION_H_
-#define _INCLUDE__HELLO_SESSION__HELLO_SESSION_H_
+
+#ifndef _INCLUDE__HELLO_WORLD__HELLO_SESSION_H_
+#define _INCLUDE__HELLO_WORLD__HELLO_SESSION_H_
 
 #include <session/session.h>
 #include <base/rpc.h>
 
-namespace mytutorial { struct Session; }
+namespace helloworld { struct Session; }
 
 
-struct mytutorial::Session : Genode::Session
+struct helloworld::Session : Genode::Session
 {
 	static const char *service_name() { return "Hello"; }
 
@@ -40,4 +35,4 @@ struct mytutorial::Session : Genode::Session
 	GENODE_RPC_INTERFACE(Rpc_say_hello, Rpc_add);
 };
 
-#endif /* _INCLUDE__HELLO_SESSION__HELLO_SESSION_H_ */
+#endif /* _INCLUDE__HELLO_WORLD__HELLO_SESSION_H_ */
