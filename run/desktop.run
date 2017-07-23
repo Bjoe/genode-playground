@@ -1,0 +1,253 @@
+#
+# Check used commands
+#
+set mke2fs [check_installed mke2fs]
+set dd     [check_installed dd]
+
+#
+# Build
+#
+
+build { 
+  core 
+  init
+
+  drivers/framebuffer
+  drivers/platform
+  drivers/input
+  drivers/timer
+  drivers/acpi
+  drivers/ahci
+  
+  server/terminal
+  server/report_rom
+  server/nitpicker
+  server/ram_blk
+  server/part_blk
+  server/rump_fs
+  server/ram_fs
+  
+  app/cli_monitor
+  app/pointer
+}
+
+#
+# Build EXT2-file-system image
+#
+catch { exec $dd if=/dev/zero of=bin/ext2.raw bs=1M count=16 }
+catch { exec $mke2fs -F bin/ext2.raw }
+
+create_boot_directory
+
+#
+# Generate config
+#
+
+append config {
+<config verbose="yes">
+  <parent-provides>
+    <service name="ROM"/>
+    <service name="IRQ"/>
+    <service name="IO_MEM"/>
+    <service name="IO_PORT"/>
+    <service name="PD"/>
+    <service name="RM"/>
+    <service name="CPU"/>
+    <service name="LOG"/>
+  </parent-provides>
+
+  <default-route>
+    <any-service> <parent/> <any-child/> </any-service>
+  </default-route>
+  
+  <default caps="100"/>
+  
+  <start name="timer">
+    <resource name="RAM" quantum="1M"/>
+    <provides><service name="Timer"/></provides>
+  </start>
+ 
+  <start name="acpi_drv" caps="200" >
+    <resource name="RAM" quantum="3M"/>
+    <route>
+		<service name="IO_MEM"> <parent/> </service>
+		<service name="LOG">    <parent/> </service>
+		<service name="PD">     <parent/> </service>
+		<service name="RM">     <parent/> </service>
+		<service name="CPU">    <parent/> </service>
+		<service name="ROM">    <parent/> </service>
+		<service name="Report"> <child name="acpi_report_rom"/> </service>
+	</route>
+</start>
+  
+  <start name="acpi_report_rom" >
+    <binary name="report_rom"/>
+    <resource name="RAM" quantum="2M"/>
+    <provides>
+      <service name="ROM" />
+      <service name="Report" />
+    </provides>
+    <config>
+      <policy label="platform_drv -> acpi" report="acpi_drv -> acpi"/>
+    </config>
+  </start>
+    
+  <start name="platform_drv" caps="800" >
+    <resource name="RAM" quantum="4M" constrain_phys="yes"/>
+    <provides>
+      <service name="Acpi"/>
+      <service name="Platform"/>
+    </provides>
+    <route>
+      <service name="ROM" label="acpi"> <child name="acpi_report_rom"/> </service>
+      <any-service> <parent/> </any-service>
+    </route>
+    <config>
+	  <policy label_prefix="ahci_drv"> <pci class="AHCI"/> </policy>
+      <policy label_prefix="ps2_drv">  <device name="PS2"/> </policy>
+      <policy label_prefix="nic_drv">  <pci class="ETHERNET"/> </policy>
+      <policy label_prefix="fb_drv">   <pci class="VGA"/> </policy>
+      <policy label_prefix="wifi_drv"> <pci class="WIFI"/> </policy>
+      <policy label_prefix="usb_drv">  <pci class="USB"/> </policy>
+      <policy label_prefix="audio_drv"> 
+        <pci class="AUDIO"/> 
+        <pci class="HDAUDIO"/> 
+      </policy>
+      <policy label_prefix="intel_fb_drv" irq_mode="nomsi">
+        <pci class="VGA"/>
+        <pci bus="0" device="0" function="0"/>
+        <pci class="ISABRIDGE"/>
+      </policy>
+    </config>
+  </start>
+
+  <start name="fb_drv">
+    <resource name="RAM" quantum="4M"/>
+    <provides><service name="Framebuffer"/></provides>
+    <config width="640" height="480"/>
+  </start>
+  
+  <start name="ps2_drv">
+    <resource name="RAM" quantum="1M"/>
+    <provides><service name="Input"/></provides>
+  </start>
+  
+  <!--
+  <start name="ram_blk">
+    <resource name="RAM" quantum="20M"/>
+    <provides><service name="Block"/></provides>
+    <config file="ext2.raw" block_size="512"/>
+  </start>
+  -->
+  <!--
+  <start name="rump_fs" caps="200">
+    <resource name="RAM" quantum="8M" />
+    <provides><service name="File_system"/></provides>
+    <route>
+      <service name="Timer"> <child name="timer"/> </service>
+      <service name="Block"> <child name="ram_blk"/> </service>
+      <service name="ROM" label="ext2.raw"> <child name="ram_blk"/> </service>
+      <any-service> <parent/> </any-service>
+  </route>
+    <config fs="ext2fs">
+        <rump quota="2M"/>
+        <policy label="cli_monitor" root="/subsystems" writeable="no"/>
+    </config>
+  </start>
+  -->
+    <start name="ram_fs">
+		<resource name="RAM" quantum="10M"/>
+		<provides><service name="File_system"/></provides>
+		<config>
+			<!-- preload RAM file system with some ROM images -->
+			<content>
+				<dir name="tmp">
+					<rom name="init" as="blubb" />
+				</dir>
+				<dir name="home">
+					<dir name="user">
+						<!-- just a place holder -->
+						<rom name="timer" />
+						<inline name="diff_me_a.txt">
+Hello world ?!
+						</inline>
+						<inline name="diff_me_b.txt">
+Hello world !!
+						</inline>
+					</dir>
+				</dir>
+                <dir name="subsystems">
+                </dir>
+			</content>
+			<!-- constrain sessions according to their labels -->
+			<policy label="cli_monitor -> root" root="/" />
+            <policy label="cli_monitor -> subsystems" root="/subsystems" writeable="yes" />
+		</config>
+	</start>
+    
+  
+  <start name="terminal" priority="0">
+    <resource name="RAM" quantum="2M"/>
+    <provides><service name="Terminal"/></provides>
+    <config>
+      <keyboard layout="de"/>
+      <font size="12" />
+    </config>
+  </start>
+
+  <start name="cli_monitor">
+    <resource name="RAM" quantum="4M"/>
+    <route>
+        <service name="File_system"> <child name="ram_fs"/> </service>
+        <service name="Terminal"> <child name="terminal"/> </service>
+        <service name="PD"> <parent/> </service>
+        <service name="CPU"> <parent/> </service>
+        <service name="LOG"> <parent/> </service>
+        <service name="ROM"> <parent/> </service>
+    </route>
+    <config>
+        <vfs/>
+      <vfs>
+	<dir name="subsystems">
+	  <fs/>
+	</dir>
+     </vfs> 
+    </config>
+  </start>
+  
+</config>
+}
+
+install_config $config
+
+build_boot_image { 
+  core 
+  ld.lib.so 
+  init
+  
+  ext2.raw
+  
+  ram_blk
+  rump.lib.so
+  rump_fs.lib.so
+  rump_fs
+  ram_fs
+  
+  timer
+  report_rom
+  
+  fb_drv
+  platform_drv
+  ps2_drv
+  acpi_drv
+  ahci_drv
+  part_blk
+  
+  terminal
+  cli_monitor
+}
+
+
+append qemu_args " -m 5G "
+
+run_genode_until forever
