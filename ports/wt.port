@@ -1,0 +1,7 @@
+LICENSE   := GPLv2
+VERSION   := 4.0.0-rc3
+DOWNLOADS := wt.archive
+
+URL(wt) := https://github.com/emweb/wt/archive/$(VERSION).tar.gz
+SHA(wt) := 03b8d134df07b9f904df89f56054011238509596
+DIR(wt) := src/lib/wt
