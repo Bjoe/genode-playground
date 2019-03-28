@@ -2,7 +2,7 @@
 # Build
 #
 
-build { core init drivers/timer hello_world }
+build { core init timer hello_world }
 
 create_boot_directory
 

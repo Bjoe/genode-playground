@@ -27,11 +27,11 @@ source ${genode_dir}/repos/base/run/platform_drv.inc
 set build_components {
   core 
   init
+  timer
 
   drivers/framebuffer
   drivers/platform
   drivers/input
-  drivers/timer
   drivers/acpi
   drivers/ahci
   

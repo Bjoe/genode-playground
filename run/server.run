@@ -1,22 +1,33 @@
 
+#####################################################################
+# Build components
+#####################################################################
+
 set build_components {
-	core init
+	core 
+	init
+	timer
 	drivers/nic
-	drivers/timer
 	app/lighttpd
 }
 
 source ${genode_dir}/repos/base/run/platform_drv.inc
-
 append_platform_drv_build_components
+
+source ${genode_dir}/repos/libports/run/vfs_lwip.inc
+append_socket_fs_build_components
 
 build $build_components
 
+#####################################################################
+#####################################################################
 
 
 create_boot_directory
 
-
+#####################################################################
+# Config
+#####################################################################
 
 append config {
 <config>
@@ -108,14 +119,18 @@ install_config $config
 
 # generic modules
 append boot_modules {
-	core init
+	core 
+	init
 	timer
 	ld.lib.so } [nic_drv_binary] {
 	libc.lib.so
 	libm.lib.so
 	posix.lib.so
-	lwip.lib.so
+	vfs.lib.so
+	vfs_lwip.lib.so
 	zlib.lib.so
+	libcrypto.lib.so
+	libssl.lib.so
 	lighttpd
 }
 
@@ -124,10 +139,15 @@ append_platform_drv_boot_modules
 
 build_boot_image $boot_modules
 
-append_if [have_spec x86]     qemu_args " -net nic,model=e1000 "
-append_if [have_spec lan9118] qemu_args " -net nic,model=lan9118 "
+proc qemu_nic_model {} {
+	if [have_spec x86]     { return e1000 }
+	if [have_spec lan9118] { return lan9118 }
+	return nic_model_missing
+}
 
-append qemu_args " -net user -redir tcp:5555::80 "
-#append qemu_args " -nographic -serial mon:stdio "
+append qemu_args " -netdev user,id=net0,hostfwd=tcp::5555-:80 "
+append qemu_args " -net nic,model=[qemu_nic_model],netdev=net0 "
+append qemu_args " -nographic -serial mon:stdio "
+append xen_args  { sdl=0\; vif=\["model=e1000,mac=02:00:00:00:01:01,bridge=xenbr0"\] }
 
 run_genode_until forever
