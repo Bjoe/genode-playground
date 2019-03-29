@@ -70,6 +70,8 @@ append config {
 					<log/>
 					<null/>
 				</dir>
+				<dir name="socket">
+					<lwip dhcp="yes"/> </dir>
 				<dir name="etc">
 					<dir name="lighttpd">
 						<inline name="lighttpd.conf">
@@ -102,7 +104,8 @@ mimetype.assign      = (
 					</inline>
 				</dir>
 			</vfs>
-			<libc stdin="/dev/null" stdout="/dev/log" stderr="/dev/log"/>
+			<libc stdin="/dev/null" stdout="/dev/log" stderr="/dev/log"
+                              socket="/socket" />
 		</config>
 	</start>}
 
