@@ -4,4 +4,13 @@ DOWNLOADS := boost.archive
 
 URL(boost) := https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz
 SHA(boost) := c066ac5c2f42fa2b870362c3c931ef73ffc6f24f
-DIR(boost) := src/lib/boost
+DIR(boost) := src/noux-pkg/boost
+#DIR(boost) := src/lib/boost
+
+#DIRS := include/boost
+#DIR_CONTENT(include/boost) = src/lib/boost/boost/version.hpp
+#DIR_CONTENT(include/boost) = $(shell find src/lib/boost/boost -name *.hpp)
+
+#PATCHES := src/lib/boost/*.patch
+PATHCHES := src/noux-pkg/boost/boost.patch
+PATCH_OPT := -p1

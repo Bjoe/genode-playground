@@ -1,0 +1,13 @@
+diff -U 3 -dHrN -- boost_1_65_1/boost/config/stdlib/libstdcpp3.hpp boost/boost/config/stdlib/libstdcpp3.hpp
+--- boost_1_65_1/boost/config/stdlib/libstdcpp3.hpp	2017-09-02 11:56:10.000000000 +0200
++++ boost/boost/config/stdlib/libstdcpp3.hpp	2017-09-26 08:32:14.557998031 +0200
+@@ -37,7 +37,8 @@
+         || defined(_GLIBCXX_HAS_GTHREADS) \
+         || defined(_WIN32) \
+         || defined(_AIX) \
+-        || defined(__HAIKU__)
++        || defined(__HAIKU__) \
++        || defined(__GENODE__)
+       //
+       // If the std lib has thread support turned on, then turn it on in Boost
+       // as well.  We do this because some gcc-3.4 std lib headers define _REENTANT

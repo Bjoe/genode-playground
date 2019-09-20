@@ -1,0 +1,181 @@
+diff --git a/boost/config/stdlib/libstdcpp3.hpp b/boost/config/stdlib/libstdcpp3.hpp
+index 9adbc8f..b71ca74 100644
+--- a/boost/config/stdlib/libstdcpp3.hpp
++++ b/boost/config/stdlib/libstdcpp3.hpp
+@@ -37,7 +37,8 @@
+         || defined(_GLIBCXX_HAS_GTHREADS) \
+         || defined(_WIN32) \
+         || defined(_AIX) \
+-        || defined(__HAIKU__)
++        || defined(__HAIKU__) \
++        || defined(__GENODE__)
+       //
+       // If the std lib has thread support turned on, then turn it on in Boost
+       // as well.  We do this because some gcc-3.4 std lib headers define _REENTANT
+diff --git a/configure b/configure
+new file mode 100755
+index 0000000..e9de10a
+--- /dev/null
++++ b/configure
+@@ -0,0 +1,77 @@
++#!/bin/sh
++
++# “a” and “arga” have optional arguments with default values.
++# “b” and “argb” have no arguments, acting as sort of a flag.
++# “c” and “argc” have required arguments.
++
++# set an initial value for the flag
++ARG_B=0
++
++# read the options
++TEMP=`getopt -o a:s:b:p: --long host:,srcdir=:,build:,prefix: -n 'test.sh' -- "$@"`
++eval set -- "$TEMP"
++
++# # extract options and their arguments into variables.
++# while true ; do
++#     case "$1" in
++#         -a|--arga)
++#             case "$2" in
++#                 "") ARG_A='some default value' ; shift 2 ;;
++#                 *) ARG_A=$2 ; shift 2 ;;
++#             esac ;;
++#         -b|--argb) ARG_B=1 ; shift ;;
++#         -c|--argc)
++#             case "$2" in
++#                 "") shift 2 ;;
++#                 *) ARG_C=$2 ; shift 2 ;;
++#             esac ;;
++#         --) shift ; break ;;
++#         *) echo "Internal error!" ; exit 1 ;;
++#     esac
++# done
++# 
++# # do something with the variables -- in this case the lamest possible one :-)
++# echo "ARG_A = $ARG_A"
++# echo "ARG_B = $ARG_B"
++# echo "ARG_C = $ARG_C"
++
++# extract options and their arguments into variables.
++while true ; do
++    case "$1" in
++        -a|--host)
++            case "$2" in
++                "") shift 2 ;;
++                *) HOST=$2 ; shift 2 ;;
++            esac ;;
++        -s|--srcdir=)
++            case "$2" in
++                "") shift 2 ;;
++                *) SRC_DIR=$2 ; shift 2 ;;
++            esac ;;
++        -b|--build)
++            case "$2" in
++                "") shift 2 ;;
++                *) BUILD=$2 ; shift 2 ;;
++            esac ;;
++        -p|--prefix)
++            case "$2" in
++                "") shift 2 ;;
++                *) PREFIX=$2 ; shift 2 ;;
++            esac ;;
++            
++        --) shift ; break ;;
++        *) echo "Internal error!" ; exit 1 ;;
++    esac
++done
++
++echo "HOST = $HOST"
++echo "SRC_DIR = $SRC_DIR"
++echo "BUILD = $BUILD"
++echo "PREFIX = $PREFIX"
++
++
++./bootstrap.sh
++
++./b2 -a --reconfigure -d+2
++
++#./b2 -a --reconfigure --prefix=$BUILD_DIR --libdir=$BUILD_DIR/var/libcache/boost --includedir=$BOOST_DIR/include -d+2 install
+diff --git a/genode-project-config.jam b/genode-project-config.jam
+new file mode 100644
+index 0000000..ea3fc58
+--- /dev/null
++++ b/genode-project-config.jam
+@@ -0,0 +1,45 @@
++import os ;
++import option ;
++import feature ;
++
++CXX = [ os.environ CXX ] ;
++CXXFLAGS = [ os.environ CXXFLAGS ] ;
++CPPFLAGS = [ os.environ CPPFLAGS ] ;
++LDFLAGS = [ os.environ LDFLAGS ] ;
++
++if ! $(CXX)
++{
++    ECHO error: ;
++    ECHO error: Genode build of Boost requires GENODE_DIR. ;
++    ECHO error: ;
++    EXIT ;
++}
++
++# Compiler configuration. This definition will be used unless
++# you already have defined some toolsets in your user-config.jam
++# file.
++if ! gcc in [ feature.values <toolset> ]
++{
++    using gcc 
++    : 6.3.0.genode 
++    : $(CXX) 
++    : <compileflags>$(CXXFLAGS)
++      <compileflags>$(CPPFLAGS)
++      <linkflags>$(LDFLAGS)
++    
++    ; 
++}
++
++project : default-build <toolset>gcc-6.3.0.genode <target-os>genode ;
++
++# List of --with-<library> and --without-<library>
++# options. If left empty, all libraries will be built.
++# Options specified on the command line completely
++# override this variable.
++libraries = --with-system --with-thread --with-date_time --with-regex --with-serialization ;
++
++# These settings are equivivalent to corresponding command-line
++# options.
++
++# Stop on first error
++option.set keep-going : false ;
+diff --git a/tools/build/src/tools/builtin.jam b/tools/build/src/tools/builtin.jam
+index 0879419..bd1b32c 100644
+--- a/tools/build/src/tools/builtin.jam
++++ b/tools/build/src/tools/builtin.jam
+@@ -41,7 +41,7 @@ import generate ;
+ 
+ 
+ .os-names = aix android appletv bsd cygwin darwin freebsd haiku hpux iphone linux netbsd
+-    openbsd osf qnx qnxnto sgi solaris unix unixware windows vms
++    openbsd osf qnx qnxnto sgi solaris unix unixware windows vms genode
+     elf  # Not actually an OS -- used for targeting bare metal where object
+          # format is ELF.  This catches both -elf and -eabi gcc targets and well
+          # as other compilers targeting ELF. It is not clear how often we need
+@@ -81,6 +81,7 @@ local rule default-host-os ( )
+             case KFREEBSD     : host-os = freebsd ;
+             case LINUX        : host-os = linux   ;
+             case VMS          : host-os = vms     ;
++            case GENODE       : host-os = genode  ;
+             case SUNOS        :
+               ECHO "SunOS is not a supported operating system." ;
+               ECHO "We believe last version of SunOS was released in 1992, " ;
+diff --git a/tools/build/src/tools/gcc.jam b/tools/build/src/tools/gcc.jam
+index 13b7063..94b364d 100644
+--- a/tools/build/src/tools/gcc.jam
++++ b/tools/build/src/tools/gcc.jam
+@@ -1035,6 +1035,7 @@ rule setup-threading ( targets * : sources * : properties * )
+             case *bsd    : option = -pthread ;  # There is no -lrt on BSD.
+             case sgi     : # gcc on IRIX does not support multi-threading.
+             case darwin  : # No threading options.
++            case genode  : option = ;
+             case *       : option = -pthread ; libs = rt ;
+         }
+ 

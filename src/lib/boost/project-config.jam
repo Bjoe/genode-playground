@@ -1,0 +1,138 @@
+import os ;
+import option ;
+import feature ;
+
+GENODE_DIR = [ os.environ GENODE_DIR ] ;
+if ! $(GENODE_DIR)
+{
+    ECHO error: ;
+    ECHO error: Genode build of Boost requires GENODE_DIR. ;
+    ECHO error: ;
+    EXIT ;
+}
+
+# Compiler configuration. This definition will be used unless
+# you already have defined some toolsets in your user-config.jam
+# file.
+if ! gcc in [ feature.values <toolset> ]
+{
+    using gcc 
+    : 6.3.0.genode 
+    : /usr/local/genode-gcc/bin/genode-x86-g++ 
+    : <compileflags>"-D__FreeBSD__=8"
+      <compileflags>"-D__GENODE__"
+      <compileflags>"-D_REENTRANT"
+      <compileflags>"-D_GNU_SOURCE"
+      <compileflags>"-D__ISO_C_VISIBLE=1999"
+      <compileflags>"-D_GLIBCXX_HAVE_MBSTATE_T"
+      <compileflags>"-D_GLIBCXX_ATOMIC_BUILTINS_4"
+      <compileflags>"-fno-builtin-sin"
+      <compileflags>"-fno-builtin-cos"
+      <compileflags>"-fno-builtin-sinf"
+      <compileflags>"-fno-builtin-cosf"
+      <compileflags>"-ffunction-sections"
+      <compileflags>"-fno-strict-aliasing"
+      <compileflags>"-nostdinc"
+      #-g
+      <compileflags>"-m64" 
+      <compileflags>"-O2" 
+      <compileflags>"-MMD" 
+      <compileflags>"-MP" 
+      #-MT 'mdc2/mdc2dgst.o mdc2/mdc2dgst.d'
+      #-Wall  
+      <compileflags>"-fPIC"
+      
+      <compileflags>"-I/usr/local/genode-gcc/lib/gcc/x86_64-pc-elf/6.3.0/include"
+      #<compileflags>"-I/usr/local/genode-gcc/x86_64-pc-elf/include/c++/6.3.0"
+      #<compileflags>"-I/usr/local/genode-gcc/x86_64-pc-elf/include/c++/6.3.0/x86_64-pc-elf"
+      
+      <compileflags>"-I$(GENODE_DIR)/contrib/libc-cefebffc6e8f129acb24de192373731461abe2f6/include/libc" 
+      <compileflags>"-I$(GENODE_DIR)/contrib/libc-cefebffc6e8f129acb24de192373731461abe2f6/include/libc-amd64"
+    
+      <compileflags>"-I$(GENODE_DIR)/repos/libports/include/stdcxx"
+      <compileflags>"-I$(GENODE_DIR)/contrib/stdcxx-bddb20f71bfb31a164f4eb5a7ec3bd8a88af1deb/include/stdcxx"
+      <compileflags>"-I$(GENODE_DIR)/contrib/stdcxx-bddb20f71bfb31a164f4eb5a7ec3bd8a88af1deb/include/stdcxx/std"
+      <compileflags>"-I$(GENODE_DIR)/contrib/stdcxx-bddb20f71bfb31a164f4eb5a7ec3bd8a88af1deb/include/stdcxx/c_global"
+
+      <compileflags>"-I$(GENODE_DIR)/repos/base/include/spec/x86"
+      <compileflags>"-I$(GENODE_DIR)/repos/os/include/spec/x86" 
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_rump/include/spec/x86"
+      <compileflags>"-I$(GENODE_DIR)/repos/base/include/spec/x86"
+      <compileflags>"-I$(GENODE_DIR)/repos/os/include/spec/x86"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_rump/include/spec/x86"
+      <compileflags>"-I$(GENODE_DIR)/repos/base/include/spec/x86_64"
+      <compileflags>"-I$(GENODE_DIR)/repos/os/include/spec/x86_64"
+      <compileflags>"-I$(GENODE_DIR)/repos/base/include/spec/x86_64"
+      <compileflags>"-I$(GENODE_DIR)/repos/os/include/spec/x86_64"
+      <compileflags>"-I$(GENODE_DIR)/repos/base-nova/include/spec/64bit"
+      <compileflags>"-I$(GENODE_DIR)/repos/base/include/spec/64bit"
+      <compileflags>"-I$(GENODE_DIR)/repos/base-nova/include/spec/64bit"
+      <compileflags>"-I$(GENODE_DIR)/repos/base/include/spec/64bit"
+      <compileflags>"-I$(GENODE_DIR)/repos/libports/include/libc-genode"
+      <compileflags>"-I$(GENODE_DIR)/repos/libports/include/libc-genode"
+      <compileflags>"-I$(GENODE_DIR)/repos/base-nova/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/base/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/os/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/demo/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/playground/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/hello_tutorial/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/libports/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/ports/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_linux/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_rump/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/gems/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/world/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_bsd/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_ipxe/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/base-nova/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/base/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/os/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/demo/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/playground/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/hello_tutorial/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/libports/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/ports/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_linux/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_rump/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/gems/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/world/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_bsd/include"
+      <compileflags>"-I$(GENODE_DIR)/repos/dde_ipxe/include"
+      
+      <linkflags>"-Wl,-melf_x86_64"
+      <linkflags>"-Wl,-gc-sections"
+      <linkflags>"-Wl,-z"
+      <linkflags>"-Wl,max-page-size=0x1000"
+      <linkflags>"-Wl,--dynamic-list=$(GENODE_DIR)/repos/base/src/ld/genode_dyn.dl"
+      <linkflags>"-nostdlib"
+      <linkflags>"-Wl,-nostdlib"
+      <linkflags>"-Wl,-Ttext=0x01000000"
+      <linkflags>"-m64"
+      <linkflags>"-Wl,--dynamic-linker=ld.lib.so"
+      <linkflags>"-Wl,--eh-frame-hdr"
+      <linkflags>"-Wl,-rpath-link=."
+      <linkflags>"-Wl,-T"
+      <linkflags>"-Wl,$(GENODE_DIR)/repos/base/src/ld/genode_dyn.ld"
+      <linkflags>"-Wl,--whole-archive"
+      <linkflags>"-Wl,--start-group"
+      <linkflags>"-Wl,--no-whole-archive"
+      <linkflags>"-Wl,--end-group /usr/local/genode-gcc/lib/gcc/x86_64-pc-elf/6.3.0/64/libgcc.a"
+      <linkflags>""
+      <linkflags>""
+    
+    ; 
+}
+
+project : default-build <toolset>gcc-6.3.0.genode <target-os>genode ;
+
+# List of --with-<library> and --without-<library>
+# options. If left empty, all libraries will be built.
+# Options specified on the command line completely
+# override this variable.
+libraries = --with-system --with-thread --with-date_time --with-regex --with-serialization ;
+
+# These settings are equivivalent to corresponding command-line
+# options.
+
+# Stop on first error
+option.set keep-going : false ;

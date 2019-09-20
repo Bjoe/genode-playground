@@ -1,0 +1,34 @@
+Binärdateien boost_1_65_1/tools/build/src/engine/bin.linuxx86_64/b2 und boost/tools/build/src/engine/bin.linuxx86_64/b2 sind verschieden.
+Binärdateien boost_1_65_1/tools/build/src/engine/bin.linuxx86_64/bjam und boost/tools/build/src/engine/bin.linuxx86_64/bjam sind verschieden.
+Binärdateien boost_1_65_1/tools/build/src/engine/bootstrap/jam0 und boost/tools/build/src/engine/bootstrap/jam0 sind verschieden.
+diff -U 3 -dHrN -- boost_1_65_1/tools/build/src/tools/builtin.jam boost/tools/build/src/tools/builtin.jam
+--- boost_1_65_1/tools/build/src/tools/builtin.jam	2017-09-02 11:56:19.000000000 +0200
++++ boost/tools/build/src/tools/builtin.jam	2017-09-26 13:28:01.000000000 +0200
+@@ -41,7 +41,7 @@
+ 
+ 
+ .os-names = aix android appletv bsd cygwin darwin freebsd haiku hpux iphone linux netbsd
+-    openbsd osf qnx qnxnto sgi solaris unix unixware windows vms
++    openbsd osf qnx qnxnto sgi solaris unix unixware windows vms genode
+     elf  # Not actually an OS -- used for targeting bare metal where object
+          # format is ELF.  This catches both -elf and -eabi gcc targets and well
+          # as other compilers targeting ELF. It is not clear how often we need
+@@ -81,6 +81,7 @@
+             case KFREEBSD     : host-os = freebsd ;
+             case LINUX        : host-os = linux   ;
+             case VMS          : host-os = vms     ;
++            case GENODE       : host-os = genode  ;
+             case SUNOS        :
+               ECHO "SunOS is not a supported operating system." ;
+               ECHO "We believe last version of SunOS was released in 1992, " ;
+diff -U 3 -dHrN -- boost_1_65_1/tools/build/src/tools/gcc.jam boost/tools/build/src/tools/gcc.jam
+--- boost_1_65_1/tools/build/src/tools/gcc.jam	2017-09-02 11:56:19.000000000 +0200
++++ boost/tools/build/src/tools/gcc.jam	2017-09-26 09:11:26.000000000 +0200
+@@ -1035,6 +1035,7 @@
+             case *bsd    : option = -pthread ;  # There is no -lrt on BSD.
+             case sgi     : # gcc on IRIX does not support multi-threading.
+             case darwin  : # No threading options.
++            case genode  : option = ;
+             case *       : option = -pthread ; libs = rt ;
+         }
+ 
