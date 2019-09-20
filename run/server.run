@@ -31,7 +31,7 @@ create_boot_directory
 #####################################################################
 
 append config {
-<config>
+<config verbose="yes">
 	<parent-provides>
 		<service name="ROM"/>
 		<service name="LOG"/>
@@ -64,7 +64,7 @@ append config {
 	</start>
 	<start name="lighttpd">
 		<resource name="RAM" quantum="1G" />
-		<config>
+		<config verbose="yes">
 			<arg value="lighttpd" />
 			<arg value="-f" />
 			<arg value="/etc/lighttpd/lighttpd.conf" />
