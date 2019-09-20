@@ -1,0 +1,161 @@
+#
+# Check used commands
+#
+set mke2fs [check_installed mke2fs]
+set dd     [check_installed dd]
+
+if {[have_spec odroid_xu]} {
+	puts "Run script does not support this platform."
+	exit 0
+}
+
+source ${genode_dir}/repos/base/run/platform_drv.inc
+
+#
+# Build
+#
+
+set build_components {
+  core 
+  init
+
+  drivers/framebuffer
+  drivers/platform
+  drivers/input
+  drivers/timer
+  drivers/acpi
+  drivers/ahci
+  
+  server/terminal
+  server/report_rom
+  server/nitpicker
+  server/ram_blk
+  server/part_blk
+  server/rump_fs
+  server/ram_fs
+  
+  app/cli_monitor
+  app/pointer
+}
+
+proc gpio_drv { } { if {[have_spec rpi] && [have_spec hw]}  { return hw_gpio_drv }
+		    if {[have_spec rpi] && [have_spec foc]} { return foc_gpio_drv }
+		    return gpio_drv }
+
+lappend_if [need_usb_hid]   build_components drivers/usb
+lappend_if [have_spec gpio] build_components drivers/gpio
+
+append_platform_drv_build_components
+
+build $build_components
+
+create_boot_directory
+
+#
+# Generate config
+#
+
+append config {
+<config verbose="yes">
+  <parent-provides>
+    <service name="ROM"/>
+    <service name="IRQ"/>
+    <service name="IO_MEM"/>
+    <service name="IO_PORT"/>
+    <service name="PD"/>
+    <service name="RM"/>
+    <service name="CPU"/>
+    <service name="LOG"/>
+  </parent-provides>
+
+  <default-route>
+    <any-service> <parent/> <any-child/> </any-service>
+  </default-route>
+  
+  <default caps="100"/>}
+
+append_if [have_spec sdl] config {
+	<start name="fb_sdl">
+		<resource name="RAM" quantum="4M"/>
+		<provides>
+			<service name="Input"/>
+			<service name="Framebuffer"/>
+		</provides>
+	</start>}
+
+append_platform_drv_config
+
+append_if [have_spec framebuffer] config {
+	<start name="fb_drv">
+		<resource name="RAM" quantum="4M"/>
+		<provides><service name="Framebuffer"/></provides>
+		<config width="640" height="480"/>
+	</start>}
+
+append config {
+  <start name="timer">
+    <resource name="RAM" quantum="1M"/>
+    <provides><service name="Timer"/></provides>
+  </start>
+ 
+ <start name="ps2_drv">
+    <resource name="RAM" quantum="1M"/>
+    <provides><service name="Input"/></provides>
+  </start>
+
+  <start name="nitpicker">
+    <resource name="RAM" quantum="1M"/>
+    <provides><service name="Nitpicker"/></provides>
+    <config>
+	<domain name="pointer" layer="1" content="client" label="no" origin="pointer" />
+
+	<policy label_prefix="pointer" domain="pointer"/>
+    </config>
+  </start>
+
+  <start name="pointer">
+    <resource name="RAM" quantum="1M"/>
+  </start>
+
+</config>
+}
+
+install_config $config
+
+set boot_modules {
+  core 
+  ld.lib.so 
+  init
+  
+  ext2.raw
+  
+  ram_blk
+  rump.lib.so
+  rump_fs.lib.so
+  rump_fs
+  ram_fs
+  
+  timer
+  nitpicker
+  report_rom
+  
+  part_blk
+  
+  pointer
+  terminal
+  cli_monitor
+}
+
+# platform-specific modules
+lappend_if [have_spec linux]       boot_modules fb_sdl
+lappend_if [have_spec ps2]         boot_modules ps2_drv
+lappend_if [have_spec framebuffer] boot_modules fb_drv
+lappend_if [need_usb_hid]          boot_modules usb_drv
+lappend_if [have_spec gpio]        boot_modules [gpio_drv]
+lappend_if [have_spec imx53]       boot_modules input_drv
+
+append_platform_drv_boot_modules
+
+build_boot_image $boot_modules
+
+run_genode_until forever
