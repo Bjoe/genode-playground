@@ -4,6 +4,7 @@ set build_components {
 	drivers/nic
 	drivers/timer
 	app/lighttpd
+	app/myservertest
 }
 
 source ${genode_dir}/repos/base/run/platform_drv.inc
@@ -47,6 +48,9 @@ append config {
 		<resource name="RAM" quantum="4M"/>
 		<provides><service name="Nic"/></provides>
 	</start>
+	<start name="myservertest">
+	  <resource name="RAM" quantum="10M"/>
+	</start>
 	<start name="lighttpd">
 		<resource name="RAM" quantum="1G" />
 		<config>
@@ -67,6 +71,7 @@ server.port          = 80
 server.document-root = "/website"
 server.event-handler = "select"
 server.network-backend = "write"
+debug.log-request-header = "enable"
 index-file.names     = (
   "index.xhtml", "index.html", "index.htm"
 )
@@ -84,8 +89,8 @@ mimetype.assign      = (
 		<title>Hello</title>
 	</head>
 	<body>
-		<p>Hello Genode!</p>
-		<b>I am bold ;-)</b>
+		<p>Hello <a href="http://www.genode.org">Genode</a>!</p>
+		This is a <b>test</b> site.
 	</body>
 </html>
 					</inline>
@@ -117,6 +122,7 @@ append boot_modules {
 	lwip.lib.so
 	zlib.lib.so
 	lighttpd
+	myservertest
 }
 
 # platform-specific modules
